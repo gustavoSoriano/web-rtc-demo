@@ -1,10 +1,14 @@
-const ws     = new WebSocket('ws://localhost:8080')
+const ws          = new WebSocket('wss://ea1ba41c.ngrok.io')
+let connection    = null
+let name          = null
+let otherUsername = null
+let localStream
 
 ws.onopen    = () => console.log('Connected to the signaling server')
-ws.onerror   = err => console.error(err)
+ws.onerror   = _ => console.error(_)
 
 ws.onmessage = msg => {
-    console.log('Got message', msg.data)
+    console.log('Chegou do socket => ', msg.data)
     const data = JSON.parse(msg.data)
 
     switch (data.type) 
@@ -30,22 +34,20 @@ ws.onmessage = msg => {
         break
 
         default:
+            console.log("Evento desconhecido")
         break
     }
 }
 
-let connection    = null
-let name          = null
-let otherUsername = null
+
 
 const sendMessage = message => {
     if (otherUsername) 
         message.otherUsername = otherUsername
 
-    ws.send(JSON.stringify(message))
+    ws.send( JSON.stringify(message) )
 }
 
-document.querySelector('div#call').style.display = 'none'
 
 
 
@@ -55,51 +57,52 @@ document.querySelector('button#login').addEventListener('click', event => {
     if (username.length < 0) 
         return alert('Please enter a username 🙂')
 
-    sendMessage({type: 'login', username: username})
+    sendMessage({type: 'login', username})
 })
 
 
 
 
 const handleLogin = async success => {
-    if (success === false) 
-        alert('😞 Username already taken')
-    else 
+    if (success === false) return alert('😞 Username already taken')
+
+    document.querySelector('div#login').style.display = 'none'
+    document.querySelector('div#call').style.display  = 'block'
+
+    try {
+        localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true})
+    } 
+    catch (error) 
     {
-        document.querySelector('div#login').style.display = 'none'
-        document.querySelector('div#call').style.display  = 'block'
+        console.error(error)
+    }
 
-        let localStream
+    //mostrando a capitura local
+    document.querySelector('video#local').srcObject = localStream
+    
+    createConn()
+}
 
-        try {
-            localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true})
-        } 
-        catch (error) 
-        {
-            console.error(error)
-        }
 
-        //mostrando a capitura local
-        document.querySelector('video#local').srcObject = localStream
 
-        //cria instÂncia do Peer
-        connection = new RTCPeerConnection({
-            iceServers: [{ url: 'stun:stun2.1.google.com:19302' }]
-        })
+const createConn = () => {
+    //cria instÂncia do Peer
+    connection = new RTCPeerConnection({
+        iceServers: [{ url: 'stun:stun2.1.google.com:19302' }]
+    })
 
-        //envia para outro peer
-        connection.addStream(localStream)
+    //envia para outro peer
+    connection.addStream(localStream)
 
-        //recebe streaming remoto
-        connection.onaddstream = event => {
-            document.querySelector('video#remote').srcObject = event.stream
-        }
+    //recebe streaming remoto
+    connection.onaddstream = event => {
+        document.querySelector('video#remote').srcObject = event.stream
+    }
 
-        //envia comunicação de que acabou de conectar no peer
-        connection.onicecandidate = event => {
-            if (event.candidate) 
-                sendMessage({type: 'candidate', candidate: event.candidate})
-        }
+    //envia comunicação de que acabou de conectar no peer
+    connection.onicecandidate = event => {
+        if (event.candidate) 
+            sendMessage({type: 'candidate', candidate: event.candidate})
     }
 }
 
@@ -110,17 +113,15 @@ const handleLogin = async success => {
 
 
 document.querySelector('button#call').addEventListener('click', () => {
-    const callToUsername = document.querySelector('input#username-to-call').value
+    otherUsername = document.querySelector('input#username-to-call').value
 
-    if (callToUsername.length === 0)
+    if (otherUsername.length === 0)
         return alert('Enter a username 😉')
-
-    otherUsername = callToUsername
 
     //cria uma oferta ao outro candidato (ligando)
     connection.createOffer(
         offer => {
-            sendMessage({type: 'offer', offer: offer})
+            sendMessage({type: 'offer', offer})
             connection.setLocalDescription(offer)
         }, error => {
             alert('Error when creating an offer')
@@ -177,4 +178,7 @@ const handleClose = () => {
     connection.close()
     connection.onicecandidate = null
     connection.onaddstream    = null
+    createConn()
 }
+
+const stopStream = () => localStream.getTracks().forEach(_ => _.stop())

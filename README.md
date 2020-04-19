@@ -1,5 +1,5 @@
-# Web-RTC
-Simple Demo Web-RTC
+# Web-RTC with socket.io
+Example Web-RTC
 
 
 #### Install dependencies
@@ -7,7 +7,12 @@ Simple Demo Web-RTC
 npm install
 ``` 
 
-#### Run
+#### Run Server
 ``` 
 node server
+``` 
+
+#### Run Client
+``` 
+index.html
 ``` 

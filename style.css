@@ -1,8 +1,8 @@
 div#call {
     position: relative;
-    display: none;
     margin: 0 auto;
     width: 500px;
+    display: none;
     height: 500px;
   }
   

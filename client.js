@@ -1,7 +1,7 @@
 let connection  = null
 let name        = null
 const username  = "user-"+ new Date().getTime().toString().substr(9, 3)
-const socket    = io('https://71d26c2e.ngrok.io', { query: { sala: "sala-1", name: username } })
+const socket    = io('http://localhost:8080', { query: { sala: "sala-1", name: username } })
 let localStream
 
 socket.on('offer', offer => handleOffer(offer) )

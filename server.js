@@ -59,10 +59,12 @@ wss.on('connection', ws => {
 
             case 'close':
                 console.log('Disconnecting from', data.otherUsername)
-                users[data.otherUsername].otherUsername = null
-
+                
                 if (users[data.otherUsername] != null) 
+                {
                     sendTo(users[data.otherUsername], { type: 'close' })
+                    users[data.otherUsername].otherUsername = null
+                }
             break
 
             default:

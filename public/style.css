@@ -23,3 +23,7 @@ div#call {
     width: 500px;
     height: 500px;
   }
+
+  button#close-call{
+    display: none;
+  }

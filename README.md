@@ -14,5 +14,5 @@ node server
 
 #### Run Client
 ``` 
-index.html
+open the browser on localhost:8080
 ``` 

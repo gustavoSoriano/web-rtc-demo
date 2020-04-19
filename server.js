@@ -28,4 +28,8 @@ app.io.on('connect', socket => {
     socket.on('disconnect', _ => socket.broadcast.to(socket.room).emit('close', socket.name) )
 })
 
+
+app.use("/", require('express').static( __dirname + '/public' ))
+
+
 http.listen(8080, () => console.log(`Server: ${8080}`))

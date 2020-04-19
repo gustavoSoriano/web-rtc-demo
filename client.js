@@ -1,7 +1,7 @@
 let connection  = null
 let name        = null
 const username  = "user-"+ new Date().getTime().toString().substr(9, 3)
-const socket    = io('http://localhost:8080', { query: { sala: "sala-1", name: username } })
+const socket    = io('/', { query: { sala: "sala-1", name: username } })
 let localStream
 
 socket.on('offer', offer => handleOffer(offer) )
@@ -58,7 +58,10 @@ const createConn = () => {
     }
 }
 
-document.querySelector('button#call').addEventListener('click', () => {
+document.querySelector('#btn-call').addEventListener('click', () => {
+    document.querySelector('#btn-call').style.display = 'none'
+    document.querySelector('#close-call').style.display = 'block'
+
     connection.createOffer(
         offer => {
             socket.emit('offer', offer)
@@ -71,6 +74,9 @@ document.querySelector('button#call').addEventListener('click', () => {
 })
 
 document.querySelector('button#close-call').addEventListener('click', () => {
+    document.querySelector('#btn-call').style.display = 'block'
+    document.querySelector('#close-call').style.display = 'none'
+
     socket.emit('close', null)
     handleClose()
 })

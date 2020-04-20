@@ -88,9 +88,10 @@ const handleClose = () => {
     connection.onicecandidate = null
     connection.onaddstream    = null
     createConn()
-    console.log("acabou a chamada")
     document.querySelector('#btn-call').style.display = 'block'
     document.querySelector('#close-call').style.display = 'none'
+    active = false
+    alert("A chamada foi finalizada")
 }
 
 const stopStream = () => localStream.getTracks().forEach(_ => _.stop())

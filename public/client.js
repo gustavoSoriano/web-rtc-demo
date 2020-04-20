@@ -1,13 +1,14 @@
 let connection  = null
 let name        = null
-const username  = "user-"+ new Date().getTime().toString().substr(9, 3)
-const socket    = io('/', { query: { sala: "sala-1", name: username } })
+const username  = "user-"+ new Date().getTime().toString().substr(9, 3) + new Date().getTime().toString().substr(11, 3)
+const socket    = io('/', { query: { sala: "sala1", name: username } })
 let localStream
+let active = false
 
-socket.on('offer', offer => handleOffer(offer) )
-socket.on('answer', answer => handleAnswer(answer) )
-socket.on('candidate', candidate => handleCandidate(candidate) )
-socket.on('close', data => handleClose() )
+socket.on('offer', offer => active ? handleOffer(offer) : null )
+socket.on('answer', answer => active ? handleAnswer(answer): null  )
+socket.on('candidate', candidate => active ? handleCandidate(candidate) : null )
+socket.on('close', _ => active ? handleClose(): null  )
 
 const handleAnswer    = answer => connection.setRemoteDescription(new RTCSessionDescription(answer))
 const handleCandidate = candidate => connection.addIceCandidate(new RTCIceCandidate(candidate))
@@ -30,7 +31,6 @@ const init = async () => {
     try {
         localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true})
         document.querySelector('video#local').srcObject = localStream
-        createConn()
         document.querySelector('div#call').style.display = 'block'
     } 
     catch (error) 
@@ -61,11 +61,12 @@ const createConn = () => {
 document.querySelector('#btn-call').addEventListener('click', () => {
     document.querySelector('#btn-call').style.display = 'none'
     document.querySelector('#close-call').style.display = 'block'
-
+    createConn()
     connection.createOffer(
         offer => {
             socket.emit('offer', offer)
             connection.setLocalDescription(offer)
+            active = true
         }, error => {
             alert('Error when creating an offer')
             console.error(error)
@@ -82,13 +83,14 @@ document.querySelector('button#close-call').addEventListener('click', () => {
 })
 
 const handleClose = () => {
-    otherUsername = null
     document.querySelector('video#remote').src = null
     connection.close()
     connection.onicecandidate = null
     connection.onaddstream    = null
     createConn()
     console.log("acabou a chamada")
+    document.querySelector('#btn-call').style.display = 'block'
+    document.querySelector('#close-call').style.display = 'none'
 }
 
 const stopStream = () => localStream.getTracks().forEach(_ => _.stop())
